@@ -37,10 +37,15 @@ class BooleanModel:
 
         for token in query_tokens:
             if self.is_operator(token):
-                right_operand = operands.pop()
-                left_operand = operands.pop()
-                result = self.__perform_operation(left_operand, right_operand, token)
-                operands.push(result)
+                if token == '!':
+                    operand = operands.pop()
+                    result = ~operand  # Negate the bit vector
+                    operands.push(result)
+                else:
+                    right_operand = operands.pop()
+                    left_operand = operands.pop()
+                    result = self.__perform_operation(left_operand, right_operand, token)
+                    operands.push(result)
             else:
                 token = self.__stem_token(token)
                 operands.push(self.__bitvector(token, inverted_index))
@@ -71,14 +76,16 @@ class BooleanModel:
 
     def __perform_operation(self, left, right, op):
         if op == "&":
-            return left & right
+           return left & right
         elif op == "|":
-            return left | right
+           return left | right
+        elif op == "!":
+           return ~right
         else:
-            return 0
+           return 0
 
     def precedence(self, token):
-        precedence = {"&": 2, "|": 1}
+        precedence = {"&": 2, "|": 1, "!": 3}  # ! has the highest precedence
         return precedence.get(token, -1)
 
     def is_left_bracket(self, token):
@@ -88,6 +95,7 @@ class BooleanModel:
         return token == ")"
 
     def is_operator(self, token):
-        return token in {"&", "|"}
+        return token in {"&", "|", "!"}
+
 
  
